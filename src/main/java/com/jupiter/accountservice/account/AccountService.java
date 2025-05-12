@@ -17,12 +17,23 @@ public class AccountService {
 
     public void onBillingCycleEnded(BillingLifecycleEndedEvent event) {
         String accountId = event.getAccountId();
-
         Account account = accounts.computeIfAbsent(accountId, Account::new);
 
         if (account.needsMembershipFee()) {
             eventBus.publish(new MembershipFeeTransactionEvent(accountId, 799.00));
             account.markMembershipFeePosted();
+        } else {
+            account.ageIfUnpaid();
+
+            if (account.needsLateFee()) {
+                eventBus.publish(new LateFeeTransactionEvent(accountId, 35.00));
+                account.markLateFeePosted();
+            }
         }
+    }
+
+    // Optional: expose state for testing/debugging
+    Map<String, Account> getAccounts() {
+        return accounts;
     }
 }

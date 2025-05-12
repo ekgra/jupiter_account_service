@@ -74,5 +74,4 @@ class AccountServiceTest {
         assertTrue(containsLateFee, "Late fee event should be emitted when balance is unpaid");
     }
 
-
 }
