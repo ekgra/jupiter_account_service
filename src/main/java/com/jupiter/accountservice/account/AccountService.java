@@ -4,6 +4,7 @@ import com.jupiter.accountservice.eventbus.EventBus;
 
 import java.util.HashMap;
 import java.util.Map;
+import com.google.common.annotations.VisibleForTesting;
 
 public class AccountService {
 
@@ -13,6 +14,8 @@ public class AccountService {
     public AccountService(EventBus eventBus) {
         this.eventBus = eventBus;
         this.eventBus.register(BillingLifecycleEndedEvent.class, this::onBillingCycleEnded);
+        this.eventBus.register(PaymentReceivedTransactionEvent.class, this::onPaymentReceived);
+        this.eventBus.register(JournalSuccessEvent.class, this::onJournalSuccess);
     }
 
     public void onBillingCycleEnded(BillingLifecycleEndedEvent event) {
@@ -38,11 +41,36 @@ public class AccountService {
 
     }
 
+    private void onPaymentReceived(PaymentReceivedTransactionEvent event) {
+        Account account = accounts.get(event.getAccountId());
+        if (account != null) {
+            account.applyPayment(event.getAmount());
+        }
+    }
+
+    private void onJournalSuccess(JournalSuccessEvent event) {
+        Account account = accounts.get(event.getAccountId());
+        if (account != null) {
+            account.applyPayment(event.getAmount());
+
+            if (account.needsReage()) {
+                eventBus.publish(new AccountReagedEvent(account.getAccountId()));
+                account.resetAge();
+                account.resetLateFeeFlag();
+            }
+        }
+    }
+
     public void applyPayment(String accountId, double amount) {
         Account account = accounts.get(accountId);
         if (account != null) {
             account.applyPayment(amount);
         }
+    }
+
+    @VisibleForTesting
+    Map<String, Account> getAccounts() {
+        return accounts;
     }
 
 }

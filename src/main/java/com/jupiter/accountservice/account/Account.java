@@ -58,4 +58,8 @@ public class Account {
         this.ageInDays = 0;
     }
 
+    public void resetLateFeeFlag() {
+        this.lateFeePosted = false;
+    }
+
 }

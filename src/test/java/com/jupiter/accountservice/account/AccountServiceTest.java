@@ -99,4 +99,40 @@ class AccountServiceTest {
         assertTrue(reaged, "Account should re-age when balance is cleared");
     }
 
+    @Test
+    void shouldReduceBalance_whenPaymentEventIsReceived() {
+        // Arrange
+        EventBus eventBus = new EventBus();
+        AccountService accountService = new AccountService(eventBus);
+
+        // Trigger initial membership fee
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-777"));
+
+        // Act: simulate payment via event
+        eventBus.publish(new PaymentReceivedTransactionEvent("acc-777", 799.00));
+
+        // Assert
+        Account account = accountService.getAccounts().get("acc-777");
+        assertNotNull(account);
+        assertEquals(0.0, account.getBalance(), 0.001, "Balance should be cleared after payment");
+    }
+
+    @Test
+    void shouldApplyJournaledAmount_whenJournalSuccessEventReceived() {
+        // Arrange
+        EventBus eventBus = new EventBus();
+        AccountService accountService = new AccountService(eventBus);
+
+        // 1. Simulate billing cycle to create fee
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-555"));
+
+        // 2. Simulate journal success for payment
+        eventBus.publish(new JournalSuccessEvent("acc-555", 799.00));
+
+        // Assert balance is now 0
+        Account account = accountService.getAccounts().get("acc-555");
+        assertNotNull(account);
+        assertEquals(0.0, account.getBalance(), 0.001, "Balance should be cleared after journal success");
+    }
+
 }
