@@ -52,4 +52,27 @@ class AccountServiceTest {
         assertEquals(1, membershipFeeEvents, "Membership fee should only be emitted once");
     }
 
+    @Test
+    void shouldEmitLateFeeTransactionEvent_whenUnpaidBalanceExists() {
+        // Arrange
+        EventBus eventBus = new EventBus();
+        List<BaseEvent> capturedEvents = new ArrayList<>();
+        eventBus.register(LateFeeTransactionEvent.class, capturedEvents::add);
+
+        AccountService accountService = new AccountService(eventBus);
+
+        // Simulate account creation and billing cycle (to post membership fee)
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-456"));
+
+        // Simulate another cycle (balance is unpaid)
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-456"));
+
+        // Assert: late fee event was emitted
+        boolean containsLateFee = capturedEvents.stream()
+                .anyMatch(e -> e instanceof LateFeeTransactionEvent);
+
+        assertTrue(containsLateFee, "Late fee event should be emitted when balance is unpaid");
+    }
+
+
 }

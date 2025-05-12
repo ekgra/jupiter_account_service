@@ -2,13 +2,13 @@ package com.jupiter.accountservice.account;
 
 import com.jupiter.accountservice.eventbus.EventBus;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AccountService {
 
     private final EventBus eventBus;
-    private final Set<String> billedAccounts = new HashSet<>(); // ✅ Track accounts already billed
+    private final Map<String, Account> accounts = new HashMap<>();
 
     public AccountService(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -18,10 +18,11 @@ public class AccountService {
     public void onBillingCycleEnded(BillingLifecycleEndedEvent event) {
         String accountId = event.getAccountId();
 
-        // ✅ Only emit the fee once per account
-        if (!billedAccounts.contains(accountId)) {
+        Account account = accounts.computeIfAbsent(accountId, Account::new);
+
+        if (account.needsMembershipFee()) {
             eventBus.publish(new MembershipFeeTransactionEvent(accountId, 799.00));
-            billedAccounts.add(accountId); // ✅ mark as billed
+            account.markMembershipFeePosted();
         }
     }
 }
