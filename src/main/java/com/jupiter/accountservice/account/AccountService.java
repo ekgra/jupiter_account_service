@@ -4,10 +4,11 @@ import com.jupiter.accountservice.eventbus.EventBus;
 
 public class AccountService {
 
-    public AccountService(EventBus eventBus) {
+    private final EventBus eventBus;
 
-        // Registering handler for BillingLifecycleEndedEvent
-        eventBus.register(BillingLifecycleEndedEvent.class, this::handleBillingCycleEnded);
+    public AccountService(EventBus eventBus) {
+        this.eventBus = eventBus;
+        this.eventBus.register(BillingLifecycleEndedEvent.class, this::handleBillingCycleEnded);
     }
 
     private void handleBillingCycleEnded(BillingLifecycleEndedEvent event) {
@@ -15,7 +16,6 @@ public class AccountService {
     }
 
     public void onBillingCycleEnded(BillingLifecycleEndedEvent event) {
-        // no-op for now: this will fail the test at runtime (Red phase)
+        eventBus.publish(new MembershipFeeTransactionEvent(event.getAccountId(), 799.00));
     }
-
 }
