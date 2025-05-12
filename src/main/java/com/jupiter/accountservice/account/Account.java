@@ -1,5 +1,8 @@
 package com.jupiter.accountservice.account;
 
+import lombok.Getter;
+
+@Getter
 public class Account {
     private final String accountId;
     private boolean membershipFeePosted = false;
@@ -40,8 +43,19 @@ public class Account {
         this.balance += 35.00; // hardcoded for now
     }
 
-    public String getAccountId() {
-        return accountId;
+    public void applyPayment(double amount) {
+        this.balance -= amount;
+        if (this.balance <= 0) {
+            this.balance = 0;
+        }
+    }
+
+    public boolean needsReage() {
+        return balance == 0 && ageInDays >= 30;
+    }
+
+    public void resetAge() {
+        this.ageInDays = 0;
     }
 
 }

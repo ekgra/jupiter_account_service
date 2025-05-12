@@ -1,7 +1,9 @@
 package com.jupiter.accountservice.account;
 
 import com.jupiter.accountservice.eventbus.BaseEvent;
+import lombok.Getter;
 
+@Getter
 public class MembershipFeeTransactionEvent implements BaseEvent {
     private final String accountId;
     private final double amount;
@@ -11,11 +13,4 @@ public class MembershipFeeTransactionEvent implements BaseEvent {
         this.amount = amount;
     }
 
-    public String getAccountId() {
-        return accountId;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
 }

@@ -1,7 +1,9 @@
 package com.jupiter.accountservice.account;
 
 import com.jupiter.accountservice.eventbus.BaseEvent;
+import lombok.Getter;
 
+@Getter
 public class BillingLifecycleEndedEvent implements BaseEvent {
     private final String accountId;
 
@@ -9,7 +11,4 @@ public class BillingLifecycleEndedEvent implements BaseEvent {
         this.accountId = accountId;
     }
 
-    public String getAccountId() {
-        return accountId;
-    }
 }

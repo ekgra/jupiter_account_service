@@ -74,4 +74,29 @@ class AccountServiceTest {
         assertTrue(containsLateFee, "Late fee event should be emitted when balance is unpaid");
     }
 
+    @Test
+    void shouldEmitAccountReagedEvent_whenBalanceIsCleared() {
+        // Arrange
+        EventBus eventBus = new EventBus();
+        List<BaseEvent> capturedEvents = new ArrayList<>();
+        eventBus.register(AccountReagedEvent.class, capturedEvents::add);
+
+        AccountService accountService = new AccountService(eventBus);
+
+        // 1st cycle: charge membership fee
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-789"));
+        // 2nd cycle: no payment, age increases
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-789"));
+
+        // Simulate full payment (clears 799 + 35)
+        accountService.applyPayment("acc-789", 834.00); // We'll add this method
+
+        // 3rd cycle: should now emit AccountReagedEvent
+        accountService.onBillingCycleEnded(new BillingLifecycleEndedEvent("acc-789"));
+
+        // Assert
+        boolean reaged = capturedEvents.stream().anyMatch(e -> e instanceof AccountReagedEvent);
+        assertTrue(reaged, "Account should re-age when balance is cleared");
+    }
+
 }

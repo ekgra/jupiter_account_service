@@ -29,11 +29,20 @@ public class AccountService {
                 eventBus.publish(new LateFeeTransactionEvent(accountId, 35.00));
                 account.markLateFeePosted();
             }
+
+            if (account.needsReage()) {
+                eventBus.publish(new AccountReagedEvent(accountId));
+                account.resetAge();
+            }
+        }
+
+    }
+
+    public void applyPayment(String accountId, double amount) {
+        Account account = accounts.get(accountId);
+        if (account != null) {
+            account.applyPayment(amount);
         }
     }
 
-    // Optional: expose state for testing/debugging
-    Map<String, Account> getAccounts() {
-        return accounts;
-    }
 }
